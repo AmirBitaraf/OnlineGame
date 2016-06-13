@@ -63,7 +63,7 @@ class Register extends CI_Model{
     return $query;
   }
 
-  public function register($username,$email,$password,$firstname,$lastname){
+  public function register($username,$email,$password,$firstname,$lastname,$country,$isKing){
     //$randomUserID=$this->makeRandom();
     $arr=array(
       'firstname'=>$firstname,
@@ -71,14 +71,58 @@ class Register extends CI_Model{
         'email'=>$email,
         'password'=>$password,
         'lastname'=>$lastname,
-        'username'=>$username
+        'username'=>$username,
+        'country_id'=>$country,
+        'role'=>($isKing ? "king" : "member")
     );
     $this->db->set($arr);
     if($this->db->insert('users')){
+      if ($isKing) {
+        $insert_id = $this->db->insert_id();      
+        $data = array(
+                 'user_owner' => $insert_id
+              );
+        $this->db->where('id', $country);
+        $this->db->update('country', $data);
+      }
       return true;
     }
     return false;
   }
+  
+  public function add_country($cname){
+    $arr=array(
+      'name'=>$cname,
+      'user_owner'=>0
+    );
+    $this->db->set($arr);
+    if($this->db->insert('country'))
+    {
+      $insert_id = $this->db->insert_id();
+      return $insert_id;
+    }
+    return null;
+  }
+  
+  public function verify_country($country)
+  {
+    $arr=array(
+          'id'=>intval($country)          
+      );
+      $this->db->where($arr);
+      $this->db->from('country');
+      $res=$this->db->count_all_results();
+      if($res>0){
+          return intval($country);
+      }
+      return null;
+  }
+  
+  public function allCountries()
+  {
+    return $this->findAll('country');
+  }
+  
   public function insertMessage($people,$text)
   {
     $arr = array(
@@ -110,10 +154,35 @@ class Register extends CI_Model{
     var_dump($array);
 
   }
-  public function sendMessage()
+  public function sendMessage($user,$text,$country)
   {
-    //get and save message from people
+    $arr=array(
+      'text'=>$text,
+      'country_id'=>intval($country),
+      'user_id'=>intval($user)
+    );
+    $this->db->set($arr);
+    if($this->db->insert('messages')){
+      return true;
+    }
+    return false;
   }
+  
+  public function allMessages($country)
+  {
+    return $this->db->query("SELECT * FROM allMessages($country)")->result();
+  }
+  
+  public function kingMessages($country)
+  {
+    return $this->db->query("SELECT * FROM allMessages($country) WHERE votes > (SELECT COUNT(*) FROM users WHERE country_id=$country) / 2")->result();
+  }
+  
+  public function allUsers($country)
+  {
+    return $this->db->query("SELECT * FROM users WHERE country_id=$country")->result();
+  }
+  
   public function upvote()
   {
     # code...

@@ -14,8 +14,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </head>
 <body>
 <div id="register-page">
-  <div  class="row" id="form_register">
-
+  <div  class="row" id="form_register">    
+  
     <div class="col s6 offset-s3 z-depth-4 card-panel">
       <!-- send form -->
       <?php echo form_error();?>
@@ -45,6 +45,24 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             <input class="validate" id="email" type="email" name="email">
             <label for="email" data-error="wrong" data-success="right">Email</label>
           </div>
+          
+          <div class="input-field col s6">
+            <!-- <i class="mdi-social-person-outline prefix"></i> -->
+            <select id="country" name="country" style="display: block;">
+              <option disabled selected>Select Country...</option>
+              <option value="-1">Register New Country</option>
+              <?php foreach($countries as $c) { ?>
+              <option value="<?php echo $c->id;?>"><?php echo $c->name;?></option>
+              <?php } ?>
+            </select>            
+          </div>
+          
+          <div class="input-field col s6" id="cnameDiv" style="display:none;">
+            <!-- <i class="mdi-social-person-outline prefix"></i> -->
+            <input class="validate" id="cname" type="text" name="cname">
+            <label for="cname" data-error="wrong" data-success="right">Country Name</label>
+          </div>
+          
           <div class="input-field col s12">
             <!-- <i class="mdi-action-lock-outline prefix"></i> -->
             <input id="password" type="password" name="password">
@@ -67,6 +85,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   </div>
   <div class="col s3 offset-s3"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+    <script>
+      $(function(){
+        $("form").submit(function(){
+          if (!$("#country").val()) {
+            alert("Please Specify Country!");
+            event.preventDefault();
+          }
+        });
+        $("#country").change(function(){
+          if ($("#country").val()=="-1") {
+            $("#cnameDiv").show();
+          }
+          else $("#cnameDiv").hide();
+        });
+      })
+    </script>
 </div>
 </body>
 </html>

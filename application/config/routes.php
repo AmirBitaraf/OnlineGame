@@ -55,4 +55,5 @@ $route['translate_uri_dashes'] = FALSE;
 $route['login']="landing/loadlogin";
 $route['register']="landing/loadregister";
 $route['admin']="landing/loadAdmin";
+$route['sendMessage']="landing/sendmessage";
 $route['db']="DBMaker/installdb";//install db before installing drop tables in data base

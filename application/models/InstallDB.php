@@ -14,61 +14,70 @@ class installDB extends CI_Model
   public function install()
   {
     $this->db->query('
-    -- Table: users
+
+    -- Table: country
+
+    -- DROP TABLE country;
+
+    CREATE TABLE IF NOT EXISTS country
+    (
+      id serial NOT NULL,
+      name character varying(40) NOT NULL DEFAULT \'\'::character varying,      
+      user_owner integer NOT NULL,
+      CONSTRAINT country_pkey PRIMARY KEY (id)      
+    )
+    WITH (
+      OIDS=FALSE
+    );
+    ALTER TABLE country
+      OWNER TO ci;
+
+      
+        -- Table: users
 
     -- DROP TABLE users;
 
-    CREATE TABLE users
+    CREATE TABLE IF NOT EXISTS users
     (
       id serial NOT NULL,
       firstname character varying(40) NOT NULL DEFAULT \'\'::character varying,
       lastname character varying(40) NOT NULL DEFAULT \'\'::character varying,
-      email character varying(40) NOT NULL DEFAULT \'\'::character varying,
-      username character varying(40) NOT NULL DEFAULT \'\'::character varying,
+      email character varying(40) NOT NULL DEFAULT \'\'::character varying UNIQUE,
+      username character varying(40) NOT NULL DEFAULT \'\'::character varying UNIQUE,
       password character varying(40) NOT NULL,
-      CONSTRAINT users_pkey PRIMARY KEY (id)
+      country_id integer NOT NULL,
+      role character varying(40) NOT NULL DEFAULT \'king\'::character varying,
+      CONSTRAINT users_pkey PRIMARY KEY (id),
+      CONSTRAINT users_country_id_fkey FOREIGN KEY (country_id)
+          REFERENCES country (id) MATCH SIMPLE
+          ON UPDATE NO ACTION ON DELETE NO ACTION
+      
     )
     WITH (
     OIDS=FALSE
     );
     ALTER TABLE users
     OWNER TO ci;
-
-    -- Table: people
-
-    -- DROP TABLE people;
-
-    CREATE TABLE people
-    (
-      id serial NOT NULL,
-      p_name character varying(40) NOT NULL DEFAULT \'\'::character varying,
-      country character varying(40) NOT NULL DEFAULT \'\'::character varying,
-      p_role character varying(40) NOT NULL DEFAULT \'MEMBER\'::character varying,
-      user_owner integer NOT NULL,
-      CONSTRAINT people_pkey PRIMARY KEY (id),
-      CONSTRAINT people_user_owner_fkey FOREIGN KEY (user_owner)
-          REFERENCES users (id) MATCH SIMPLE
-          ON UPDATE NO ACTION ON DELETE NO ACTION
-    )
-    WITH (
-      OIDS=FALSE
-    );
-    ALTER TABLE people
-      OWNER TO ci;
-
+      
+      
+      
 
     -- Table: messages
 
     -- DROP TABLE messages;
 
-    CREATE TABLE messages
+    CREATE TABLE IF NOT EXISTS messages
     (
       id  serial NOT NULL,
-      me_text text NOT NULL,
-      people_id integer,
+      text text NOT NULL,
+      country_id integer NOT NULL,
+      user_id integer NOT NULL,
       CONSTRAINT messages_pkey PRIMARY KEY (id),
-      CONSTRAINT messages_people_id_fkey FOREIGN KEY (people_id)
-          REFERENCES people (id) MATCH SIMPLE
+      CONSTRAINT messages_country_id_fkey FOREIGN KEY (country_id)
+          REFERENCES country (id) MATCH SIMPLE
+          ON UPDATE NO ACTION ON DELETE NO ACTION,
+      CONSTRAINT messages_users_id_fkey FOREIGN KEY (user_id)
+          REFERENCES users (id) MATCH SIMPLE
           ON UPDATE NO ACTION ON DELETE NO ACTION
     )
     WITH (
@@ -82,17 +91,17 @@ class installDB extends CI_Model
 
     -- DROP TABLE vote;
 
-    CREATE TABLE vote
+    CREATE TABLE IF NOT EXISTS vote
     (
       id serial NOT NULL,
       message_id integer NOT NULL,
-      people_id integer NOT NULL,
+      user_id integer NOT NULL,
       CONSTRAINT vote_pkey PRIMARY KEY (id),
       CONSTRAINT vote_message_id_fkey FOREIGN KEY (message_id)
           REFERENCES messages (id) MATCH SIMPLE
           ON UPDATE NO ACTION ON DELETE NO ACTION,
-      CONSTRAINT vote_people_id_fkey FOREIGN KEY (people_id)
-          REFERENCES people (id) MATCH SIMPLE
+      CONSTRAINT vote_user_id_fkey FOREIGN KEY (user_id)
+          REFERENCES users (id) MATCH SIMPLE
           ON UPDATE NO ACTION ON DELETE NO ACTION
     )
     WITH (
@@ -235,6 +244,26 @@ class installDB extends CI_Model
 
     END;
     $message$ LANGUAGE plpgsql;
+    
+    
+    CREATE OR REPLACE FUNCTION allMessages(country_id integer) RETURNS
+    TABLE(id integer, firstname character varying, lastname character varying,
+    role character varying, me_text text, votes bigint
+    ) AS $$
+    
+    BEGIN         
+         RETURN QUERY
+             SELECT messages.id, users.firstname, users.lastname,users.role,
+             messages.text as me_text, votes.votes
+             FROM messages LEFT JOIN
+             (SELECT vote.id AS mid,COUNT(*) AS votes FROM vote GROUP BY vote.id) AS votes
+             ON messages.id = votes.mid
+             INNER JOIN users ON messages.user_id=users.id;
+    END;
+    $$ LANGUAGE plpgsql;
+    
+    
+    
 
     ');
   }
