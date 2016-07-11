@@ -14,7 +14,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
          <th>Role</th>
          <th>Text</th>
          <th>Vote</th>
-         <th>VoteUp</th>
+         <th></th>
        </tr>
      </thead>
      <tbody>
@@ -29,7 +29,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
          <?php echo ($m->votes ? $m->votes : 0); ?>
        </td>
        <td>
-         <button type="button" class="btn btn-primary" onclick="upvote(this)" name="button" >Upvote</button>
+         <?php if(!$isKing){ ?><a href="<?php echo base_url();?>index.php/landing/upvote?id=<?php echo $m->id ?>"><button type="button" class="btn btn-primary" name="button" >Upvote</button></a><?php } ?>
        </td>
      </tr>
      <?php } ?>

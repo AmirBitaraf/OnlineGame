@@ -22,9 +22,9 @@ class installDB extends CI_Model
     CREATE TABLE IF NOT EXISTS country
     (
       id serial NOT NULL,
-      name character varying(40) NOT NULL DEFAULT \'\'::character varying,      
+      name character varying(40) NOT NULL DEFAULT \'\'::character varying,
       user_owner integer NOT NULL,
-      CONSTRAINT country_pkey PRIMARY KEY (id)      
+      CONSTRAINT country_pkey PRIMARY KEY (id)
     )
     WITH (
       OIDS=FALSE
@@ -32,7 +32,7 @@ class installDB extends CI_Model
     ALTER TABLE country
       OWNER TO ci;
 
-      
+
         -- Table: users
 
     -- DROP TABLE users;
@@ -51,16 +51,16 @@ class installDB extends CI_Model
       CONSTRAINT users_country_id_fkey FOREIGN KEY (country_id)
           REFERENCES country (id) MATCH SIMPLE
           ON UPDATE NO ACTION ON DELETE NO ACTION
-      
+
     )
     WITH (
     OIDS=FALSE
     );
     ALTER TABLE users
     OWNER TO ci;
-      
-      
-      
+
+
+
 
     -- Table: messages
 
@@ -102,7 +102,8 @@ class installDB extends CI_Model
           ON UPDATE NO ACTION ON DELETE NO ACTION,
       CONSTRAINT vote_user_id_fkey FOREIGN KEY (user_id)
           REFERENCES users (id) MATCH SIMPLE
-          ON UPDATE NO ACTION ON DELETE NO ACTION
+          ON UPDATE NO ACTION ON DELETE NO ACTION,
+      CONSTRAINT unique_vote unique (message_id, user_id)
     )
     WITH (
       OIDS=FALSE
@@ -244,26 +245,26 @@ class installDB extends CI_Model
 
     END;
     $message$ LANGUAGE plpgsql;
-    
-    
+
+
     CREATE OR REPLACE FUNCTION allMessages(country_id integer) RETURNS
     TABLE(id integer, firstname character varying, lastname character varying,
     role character varying, me_text text, votes bigint
     ) AS $$
-    
-    BEGIN         
+
+    BEGIN
          RETURN QUERY
              SELECT messages.id, users.firstname, users.lastname,users.role,
              messages.text as me_text, votes.votes
              FROM messages LEFT JOIN
-             (SELECT vote.id AS mid,COUNT(*) AS votes FROM vote GROUP BY vote.id) AS votes
+             (SELECT vote.message_id AS mid,COUNT(*) AS votes FROM vote GROUP BY vote.id) AS votes
              ON messages.id = votes.mid
              INNER JOIN users ON messages.user_id=users.id;
     END;
     $$ LANGUAGE plpgsql;
-    
-    
-    
+
+
+
 
     ');
   }

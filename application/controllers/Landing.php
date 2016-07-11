@@ -16,7 +16,7 @@ class Landing extends CI_Controller{
   public function index(){
     ;
   }
-  
+
   public function sendMessage()
   {
 	$text =  $this->input->post('text');
@@ -34,18 +34,19 @@ class Landing extends CI_Controller{
 		'messages' => $this->session->userdata('isKing') ?
 						$this->register->kingMessages($this->session->userdata('country')) :
 						$this->register->allMessages($this->session->userdata('country')),
-		'users' => $this->register->allUsers($this->session->userdata('country'))
+		'users' => $this->register->allUsers($this->session->userdata('country')),
+    'isKing' => $this->session->userdata('isKing')
       );
       $this->load->view('template/header',$data);
-      $this->load->view('template/sidenavleft',$data);	  
+      $this->load->view('template/sidenavleft',$data);
       $this->load->view('admin',$data);
-	  
-	  if($this->session->userdata('isKing')===true)	  
+
+	  if($this->session->userdata('isKing')===true)
 		$this->load->view('peoples',$data);
-		
+
 	  if($this->session->userdata('isKing')===false)
 		$this->load->view('sendmessage',$data);
-		
+
 	  $this->load->view('form',$data);
       $this->load->view('template/footer');
     }
@@ -98,7 +99,7 @@ class Landing extends CI_Controller{
     $this->form_validation->set_rules('lastname','LastName','trim|required|min_length[3]|max_length[30]');
     $this->form_validation->set_rules('password','Password','trim|required|min_length[4]|max_length[40]');
     $this->form_validation->set_rules('email','Email','required');
-	
+
     if($this->form_validation->run()){
       if(!$this->register->checkExist($username,$email)){
 		$isKing = false;
@@ -158,10 +159,11 @@ class Landing extends CI_Controller{
   public function upvote()
   {
     if($this->session->userdata('isOnline')===true){
-      $user=$this->session->userdata('user');
-      $people=$this->input->post('people');
-      $message=$this->input->post('message');
-      //do Upvoote
+      $user_id = $this->session->userdata('uid');
+      $id = $this->input->get('id');
+
+      $this->register->upvote($user_id, $id);
+      $this->loadAdmin();
     }
   }
   public function getAllMessages()

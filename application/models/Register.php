@@ -78,7 +78,7 @@ class Register extends CI_Model{
     $this->db->set($arr);
     if($this->db->insert('users')){
       if ($isKing) {
-        $insert_id = $this->db->insert_id();      
+        $insert_id = $this->db->insert_id();
         $data = array(
                  'user_owner' => $insert_id
               );
@@ -89,7 +89,7 @@ class Register extends CI_Model{
     }
     return false;
   }
-  
+
   public function add_country($cname){
     $arr=array(
       'name'=>$cname,
@@ -103,11 +103,11 @@ class Register extends CI_Model{
     }
     return null;
   }
-  
+
   public function verify_country($country)
   {
     $arr=array(
-          'id'=>intval($country)          
+          'id'=>intval($country)
       );
       $this->db->where($arr);
       $this->db->from('country');
@@ -117,12 +117,12 @@ class Register extends CI_Model{
       }
       return null;
   }
-  
+
   public function allCountries()
   {
     return $this->findAll('country');
   }
-  
+
   public function insertMessage($people,$text)
   {
     $arr = array(
@@ -167,25 +167,36 @@ class Register extends CI_Model{
     }
     return false;
   }
-  
+
   public function allMessages($country)
   {
     return $this->db->query("SELECT * FROM allMessages($country)")->result();
   }
-  
+
   public function kingMessages($country)
   {
     return $this->db->query("SELECT * FROM allMessages($country) WHERE votes > (SELECT COUNT(*) FROM users WHERE country_id=$country) / 2")->result();
   }
-  
+
   public function allUsers($country)
   {
     return $this->db->query("SELECT * FROM users WHERE country_id=$country")->result();
   }
-  
-  public function upvote()
+
+  public function upvote($user, $message_id)
   {
-    # code...
+      $arr=array(
+        'message_id'=>intval($message_id),
+        'user_id'=>intval($user)
+      );
+      $this->db->set($arr);
+      try{
+        if($this->db->insert('vote')){
+          return true;
+        }
+      }
+      catch(Exception $e){}
+      return false;
   }
   public function query($string)
   {

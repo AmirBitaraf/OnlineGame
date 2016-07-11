@@ -56,4 +56,5 @@ $route['login']="landing/loadlogin";
 $route['register']="landing/loadregister";
 $route['admin']="landing/loadAdmin";
 $route['sendMessage']="landing/sendmessage";
+$route['upvote']="landing/upvote";
 $route['db']="DBMaker/installdb";//install db before installing drop tables in data base
